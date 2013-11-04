@@ -131,6 +131,16 @@ The typed_attr_accessor and typed_attr_writer helpers make it easy to create att
 
 Now when the 'config' attribute is assigned it will be automatically converted to an instance of MailerConfiguration or it will raise an exception if it cannot be converted.
 
+## Built-in and custom conversions for non-interfaces
+
+For the basic ruby types (String, Symbol, Integer, Float, Array, Hash (on ruby 2.0)) there are built-in conversions that simply call the corresponding standard ruby conversion method (to_s, to_sym, to_i, to_f, to_a, to_h):
+
+    "test".as(Symbol) == :test
+
+This allows the typed_attr_accessor to be used with these standard types.
+
+Additional custom conversions can be defined by overriding the 'as' method in a class.
+
 ## Interface caching and state
 
 Interfaces are full-fledged ruby classes, and as such they can have methods and instance variables (state).  To ensure that this state is maintained each time the object is cast, an interface cache is maintained on any object that has been casted at least once.  This means that the following is always true:
