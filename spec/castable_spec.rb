@@ -20,6 +20,14 @@ describe Interfaces::Castable do
     end
   end
 
+  describe FullyImplimentedClass do
+    let(:instance) { FullyImplimentedClass.new }
+
+    it 'should just return self if attempting to cast an object that is already the right kind of object' do
+      instance.as(TestInterface).should === instance
+    end
+  end
+
   describe ClassNotConformingToTestInterface do
     let(:instance) { ClassNotConformingToTestInterface.new }
 

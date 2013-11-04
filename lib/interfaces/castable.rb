@@ -2,6 +2,9 @@ module Interfaces
   # a mixin that defines the 'as' method to allow an object to be cast as an interface
   module Castable
     def as(interface)
+      # check if object already is an instance of interface
+      return self if self.kind_of?(interface)
+
       # cache the resulting interface so that we can load it faster next
       # time and so that it can save state
       cache = self.instance_variable_get(:@interface_cache)
