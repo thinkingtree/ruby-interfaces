@@ -39,6 +39,7 @@ describe Interfaces::Castable do
       casted_instance.method1.should == 1
       casted_instance.method2.should == 2
       casted_instance.method3(2).should == 8
+      casted_instance.opt_method.should == 5
     end
 
     it 'should return the same casted instance if cast is called multiple times' do

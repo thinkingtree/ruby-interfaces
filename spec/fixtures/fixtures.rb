@@ -1,6 +1,8 @@
 class TestInterface < Interface
   abstract :method1, :method2
   abstract :method3
+
+  optional :opt_method
 end
 
 class TestSubInterface < TestInterface
@@ -26,6 +28,7 @@ class ClassConformingToTestInterface
   def method1; 1; end
   def method2; 2; end
   def method3(x); x * 4; end
+  def opt_method; 5; end
 end
 
 class ClassNotConformingToTestInterface

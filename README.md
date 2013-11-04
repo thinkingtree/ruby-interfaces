@@ -120,6 +120,18 @@ This breaks away from the traditional notion of 'interfaces' in that we're now i
 
 Note that the use_ssl? method is no longer abstract in the SecureMailerConfiguration interface because it has been implemented.
 
+## Optional methods
+
+An interface may contain optional methods. If they are defined by a class then they will be delegated to, but if they are not defined they will simply return nil.  This alleviates the developer from having to add respond_to? checks before calling methods that may or may not be defined.
+
+    class TestInterface < Interface
+      abstract :field1
+      optional :field2
+    end
+
+    TestInterface.new.field2
+    => nil
+
 ## Typed accessors
 
 The typed_attr_accessor and typed_attr_writer helpers make it easy to create attributes that always conform to an interface:

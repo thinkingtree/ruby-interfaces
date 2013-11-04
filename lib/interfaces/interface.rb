@@ -3,10 +3,11 @@ require 'set'
 module Interfaces
   # Interface is meant to be used as a base class for the definition of Interfaces
   class Interface
+    # Define methods as asbtract
     def self.abstract(*methods)
       @abstract_methods ||= Set.new
       methods.each do |method|
-        # the default implmentation of an abstract method it simply to
+        # the default implmentation of an abstract method is to
         # raise the AbstractMethodInvokedError exception
         define_method(method) do
           raise AbstractMethodInvokedError, "Abstract method #{method} called"
@@ -33,14 +34,35 @@ module Interfaces
       !abstract_methods.empty?
     end
 
+    # List all optional methods of a class
+    def self.optional_methods
+      if self == Interface
+        []
+      else
+        ( (@optional_methods || Set.new) + superclass.optional_methods ).to_a
+      end
+    end
+
+    # Define methods as optional
+    def self.optional(*methods)
+      @optional_methods ||= Set.new
+      methods.each do |method|
+        # the default implmentation of an optional method is to return nil
+        define_method(method) do
+          nil
+        end
+        @optional_methods << method.to_sym
+      end
+    end
+
     # allow interfaces to be instantiated directly by passing
     # in values for each of the abstract methods
     def initialize(opts = {})
       opts.each_pair do |key, value|
 
         # only allow initializers for abstract methods
-        unless self.class.abstract_methods.include?(key.to_sym)
-          raise InterfaceError, "Attempted to assign value to method '#{key}' which is not an abstract method of #{self.class}"
+        unless self.class.abstract_methods.include?(key.to_sym) || self.class.optional_methods.include?(key.to_sym)
+          raise InterfaceError, "Attempted to assign value to method '#{key}' which is not an abstract or optional method of #{self.class}"
         end
 
         if value.is_a?(Proc)

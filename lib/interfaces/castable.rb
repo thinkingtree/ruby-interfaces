@@ -42,7 +42,7 @@ module Interfaces
           delegate = self
           non_implemented_methods = []
 
-          # define singeton methods that delegate back to this object
+          # define singleton methods that delegate back to this object for each abstract method
           interface.abstract_methods.each do |method|
             non_implemented_methods << method unless self.respond_to?(method)
             i.define_singleton_method(method) do |*args|
@@ -53,6 +53,15 @@ module Interfaces
           # raise an exception if all abstract methods are not overridden
           unless non_implemented_methods.empty?
             raise NonConformingObjectError, "#{self} does not conform to interface #{interface}.  Expected methods not implemented: #{non_implemented_methods.join(", ")}"
+          end
+
+          # define singleton methods that delegate back to this object for each optional method
+          interface.optional_methods.each do |method|
+            if self.respond_to?(method)
+              i.define_singleton_method(method) do |*args|
+                delegate.send(method, *args)
+              end
+            end
           end
 
           i
