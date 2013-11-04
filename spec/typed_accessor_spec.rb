@@ -12,5 +12,10 @@ describe Interfaces::TypedAccessors do
     it 'should throw an exception if an object that does not conform to the interface is passed' do
       expect { instance.field1 = Object.new }.to raise_error(Interfaces::NonConformingObjectError)
     end
+
+    it 'should allow nil to be assigned' do
+      instance.field1 = nil
+      instance.field1.should be_nil
+    end
   end
 end

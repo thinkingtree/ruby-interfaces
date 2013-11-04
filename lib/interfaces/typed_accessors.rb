@@ -23,7 +23,7 @@ module Interfaces
       attrs.each_pair do |attr_name,interface|
         inst_variable_name = "@#{attr_name}"
         define_method "#{attr_name}=" do |new_value|
-          instance_variable_set inst_variable_name, new_value.as(interface)
+          instance_variable_set inst_variable_name, new_value ? new_value.as(interface) : nil
         end
       end
     end
