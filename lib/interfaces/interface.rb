@@ -1,3 +1,5 @@
+require 'set'
+
 module Interfaces
   # Interface is meant to be used as a base class for the definition of Interfaces
   class Interface

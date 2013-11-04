@@ -18,7 +18,123 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+Ruby is a fun, super-flexible language that lets us as developers do almost anything we can dream of.  Sometimes we do great with that kind of freedom, but other times we need stricter rules to help guide us.  Interfaces is a library designed to help put some enforcement around the way that duck-typing is used in ruby.  It allows us to ask the question 'does this object have the methods I need?' and then to say 'thanks, I promise to only call these methods.'  It also helps to make code more readable, by stating 'I'm expecting you to give me an object that has these methods.'
+
+Let's role play a development scenario.  Let's say you are writing an application that will send mail through a user's mail server.  You're going to store the user's configuration on the User model.  To keep this example simple, we won't use ActiveRecord for our model, just a plain old class:
+
+    class User
+      # some properties of the user
+      attr_accessor :username
+
+      # some options specifically for sending mail
+      attr_accessor :email_server, :use_ssl?, :port, :use_html?
+
+	  def email_sent_callback(mailer)
+	  	# do something after mail is sent
+	  end
+    end
+
+And we create a MailerService to send mail:
+
+    class MailerService
+      attr_accessor :user, :to, :subject, :message
+
+      def initialize(user, to, subject, message)
+      	self.user = user
+      	self.to = to
+      	self.subject = subject
+      	self.message = message
+      end
+
+      def deliver
+        # ... implement mail sending here
+        user.email_sent_callback(self)
+      end
+    end
+
+This works, but we've needlessly coupled our MailerService to our User model.  The Mailer service does not really need a User, what it needs is configuration.  To be slightly more explicit then we could simply rename the first parameter to 'configuration':
+
+    class MailerService
+      attr_accessor :configuration, :to, :subject, :message
+
+      def initialize(configuration, to, subject, message)
+      	self.configuration = configuration
+      	self.to = to
+      	self.subject = subject
+      	self.message = message
+      end
+
+      def deliver
+        # ... implement mail sending here
+      end
+    end
+
+This also works fine.  We can call the Mailer service and pass it a user:
+
+	MailerService.new(user, 'bob@example.com', 'test message', 'hello world!').deliver
+	
+The problem isn't that it doesn't work, it does.  The problem is that the readability is low.  Looking at the line of code above, one might wonder why a user is being passed into the mailer service.  One might also wonder what properties of 'user' the mailer service is actually using.  Is the mailer only reading properties of my user or is it *changing* the user?  What if another developer comes along, noticing that the mailer is receiving a User model, and inadvertantly tightly couples MailerService to the User model?  That may not cause immediate problems, but down the road services and models can become more and more tightly coupled.  When you find yourself needing to use your service somewhere else you might find the de-coupling refactor to be a daunting task...
+
+So let's re-write this code using Interfaces.  First, let's define an interface:
+
+	class MailerConfiguration < Interface
+		abstract :email_server, :use_ssl?, :port, :use_html?, :email_sent_callback
+	end
+
+Then, when we call our mailer service we cast the 'user' object to be a MailerConfiguration object:
+
+	MailerService.new(user.as(MailerConfiguration), 'bob@example.com', 'test message', 'hello world!').deliver
+
+
+Now it's clear that the user is being passed in because it contains configuration information.  Further, there is enforcement taking place-- if User did not implement one of the four required methods, a clear exception would be fired at runtime.  And if MailerService tries to call another method of User that is not defined in the MailerConfiguration interface, an exception will be thrown.  Lastly, there's one place to look to determine what methods are needed by MailerConfiguration-- the code is self documenting.
+
+Behind the scenes what is really happening here is that a new MailerConfiguration instance is being created, and then the abstract methods are being redefined on that instance to proxy to the equivalent methods on the 'user' object.
+
+Interfaces have a few other capabilities.  First, they can be instantiated using a hash if you don't want to use duck typing, making them much more like a Struct that can also contain arbitrary methods.
+
+	config = MailerConfiguration.new(:email_server => 'myemailserver.com',
+									  :port => 443,
+									  :use_ssl? => true,
+									  :use_html? => true,
+									  :email_sent_callback => lambda { |s| puts "Mail sent!"})
+	MailerService.new(config, 'bob@example.com', 'test message', 'hello world!').deliver
+
+Interfaces can also be derived from other interfaces, both adding or removing abstract methods:
+
+	class SecureMailerConfiguration < MailerConfiguration
+		abstract :vpn
+		
+		# always use ssl
+		def use_ssl?
+			true
+		end
+	end
+
+This breaks away from the traditional notion of 'interfaces' in that we're now implementing methods directly on an interface.  This practice is much more similar to the notion of abstract classes in other languages.  Let's view the abstract methods of both of these interfaces:
+
+	MailerConfiguration.abstract_methods
+	=> [:email_server, :use_ssl?, :port, :use_html?, :email_sent_callback]
+
+	SecureMailerConfiguration.abstract_methods
+	=> [:vpn, :email_server, :port, :use_html?, :email_sent_callback]
+
+Note that the use_ssl? method is no longer abstract in the SecureMailerConfiguration interface because it has been implemented.
+
+## Interface caching and state
+
+Interfaces are full-fledged ruby classes, and as such they can have methods and instance variables (state).  To ensure that this state is maintained each time the object is cast, an interface cache is maintained on any object that has been casted at least once.  This means that the following is always true:
+
+	user.as(MailerConfiguration) === user.as(MailerConfiguration)
+
+## Usage with the 'contracts' gem
+
+The 'interfaces' gem does not enforce that a parameter passed to a method conforms to an interface, but this can be achieved by using the [contracts gem](https://github.com/egonSchiele/contracts.ruby):
+
+	class MailerService
+      attr_accessor :configuration, :to, :subject, :message
+
+	  Contract MailerConfiguration, String, String, String => MailerService
+      def initialize(configuration, to, subject, message)
 
 ## Contributing
 
