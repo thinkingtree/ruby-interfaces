@@ -32,3 +32,8 @@ class ClassNotConformingToTestInterface
   def method1; 1; end
   def method2; 2; end
 end
+
+class ClassWithTypedAttributes
+  typed_attr_accessor :field1 => TestInterface
+  typed_attr_writer :field2 => TestInterface
+end

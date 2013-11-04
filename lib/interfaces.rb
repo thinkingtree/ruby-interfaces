@@ -1,6 +1,7 @@
 require "interfaces/version"
 require "interfaces/interface"
 require "interfaces/castable"
+require "interfaces/typed_accessors"
 
 module Interfaces
   class InterfaceError < StandardError; end
@@ -11,4 +12,8 @@ end
 class Object
   include Interfaces::Castable
   Interface = Interfaces::Interface
+end
+
+class Class
+  include Interfaces::TypedAccessors
 end

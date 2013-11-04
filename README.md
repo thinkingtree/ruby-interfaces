@@ -72,7 +72,7 @@ This works, but we've needlessly coupled our MailerService to our User model.  T
 This also works fine.  We can call the Mailer service and pass it a user:
 
 	MailerService.new(user, 'bob@example.com', 'test message', 'hello world!').deliver
-	
+
 The problem isn't that it doesn't work, it does.  The problem is that the readability is low.  Looking at the line of code above, one might wonder why a user is being passed into the mailer service.  One might also wonder what properties of 'user' the mailer service is actually using.  Is the mailer only reading properties of my user or is it *changing* the user?  What if another developer comes along, noticing that the mailer is receiving a User model, and inadvertantly tightly couples MailerService to the User model?  That may not cause immediate problems, but down the road services and models can become more and more tightly coupled.  When you find yourself needing to use your service somewhere else you might find the de-coupling refactor to be a daunting task...
 
 So let's re-write this code using Interfaces.  First, let's define an interface:
@@ -103,7 +103,7 @@ Interfaces can also be derived from other interfaces, both adding or removing ab
 
 	class SecureMailerConfiguration < MailerConfiguration
 		abstract :vpn
-		
+
 		# always use ssl
 		def use_ssl?
 			true
@@ -119,6 +119,17 @@ This breaks away from the traditional notion of 'interfaces' in that we're now i
 	=> [:vpn, :email_server, :port, :use_html?, :email_sent_callback]
 
 Note that the use_ssl? method is no longer abstract in the SecureMailerConfiguration interface because it has been implemented.
+
+## Typed accessors
+
+The typed_attr_accessor and typed_attr_writer helpers make it easy to create attributes that always conform to an interface:
+
+    class MailerService
+      typed_attr_accessor :config => MailerConfiguration
+      # ...
+    end
+
+Now when the 'config' attribute is assigned it will be automatically converted to an instance of MailerConfiguration or it will raise an exception if it cannot be converted.
 
 ## Interface caching and state
 
