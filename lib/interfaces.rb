@@ -7,6 +7,7 @@ module Interfaces
   class InterfaceError < StandardError; end
   class AbstractMethodInvokedError < InterfaceError; end
   class NonConformingObjectError < InterfaceError; end
+  class NonConvertableObjectError < InterfaceError; end
 end
 
 class Object

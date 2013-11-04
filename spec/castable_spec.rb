@@ -1,6 +1,32 @@
 require 'spec_helper'
 
 describe Interfaces::Castable do
+  it 'raises an exception when attempting to cast to a non-Class' do
+    expect { Object.new.as("something") }.to raise_error(Interfaces::InterfaceError)
+  end
+
+  describe 'conversions' do
+    it 'can convert to String' do
+      :test.as(String).should == "test"
+    end
+
+    it 'can convert to Symbol' do
+      "test".as(Symbol).should == :test
+    end
+
+    it 'can convert to an Array' do
+      {:test => 1}.as(Array).should == [[:test, 1]]
+    end
+
+    it 'can convert to an Integer' do
+      "1".as(Integer).should == 1
+    end
+
+    it 'can convert to a Float' do
+      "1.1".as(Float).should == 1.1
+    end
+  end
+
   describe ClassConformingToTestInterface do
     let(:instance) { ClassConformingToTestInterface.new }
     let(:casted_instance) { instance.as(TestInterface) }
