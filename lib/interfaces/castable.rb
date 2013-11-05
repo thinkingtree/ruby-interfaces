@@ -20,6 +20,14 @@ module Interfaces
       end
     end
 
+    # returns true if an object conforms to the given interface (implements the abstract methods)
+    def conforms_to?(interface)
+      # interface must be an Interface
+      raise InterfaceError, "#{interface} is not an Interface" unless interface < Interface
+      interface.abstract_methods.all? { |method| self.respond_to?(method) }
+    end
+
+    # casts an object to an instance of a particular Interface
     def as(interface)
       # interface must be a class
       raise InterfaceError, "#{interface} is not a class" unless interface.is_a?(Class)

@@ -132,6 +132,11 @@ An interface may contain optional methods. If they are defined by a class then t
     TestInterface.new.field2
     => nil
 
+## Checking conformance
+
+  User.conforms_to?(TestInterface)
+  => true
+
 ## Typed accessors
 
 The typed_attr_accessor and typed_attr_writer helpers make it easy to create attributes that always conform to an interface:

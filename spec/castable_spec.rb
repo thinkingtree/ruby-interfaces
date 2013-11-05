@@ -31,6 +31,10 @@ describe Interfaces::Castable do
     let(:instance) { ClassConformingToTestInterface.new }
     let(:casted_instance) { instance.as(TestInterface) }
 
+    it 'instance should conform_to the TestInteface' do
+      instance.conforms_to?(TestInterface).should be_true
+    end
+
     it 'casted_instance should be an instance of TestInterface' do
       casted_instance.should be_a(TestInterface)
     end
