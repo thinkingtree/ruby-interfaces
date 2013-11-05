@@ -134,8 +134,8 @@ An interface may contain optional methods. If they are defined by a class then t
 
 ## Checking conformance
 
-  User.conforms_to?(TestInterface)
-  => true
+    User.conforms_to?(TestInterface)
+    => true
 
 ## Typed accessors
 
