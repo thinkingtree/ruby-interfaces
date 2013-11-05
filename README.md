@@ -1,7 +1,5 @@
 # Interfaces
 
-TODO: Write a gem description
-
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -29,9 +27,9 @@ Let's role play a development scenario.  Let's say you are writing an applicatio
       # some options specifically for sending mail
       attr_accessor :email_server, :use_ssl?, :port, :use_html?
 
-	  def email_sent_callback(mailer)
-	  	# do something after mail is sent
-	  end
+  	  def email_sent_callback(mailer)
+	   	  # do something after mail is sent
+	    end
     end
 
 And we create a MailerService to send mail:
@@ -52,39 +50,26 @@ And we create a MailerService to send mail:
       end
     end
 
-This works, but we've needlessly coupled our MailerService to our User model.  The Mailer service does not really need a User, what it needs is configuration.  To be slightly more explicit then we could simply rename the first parameter to 'configuration':
+We can call the Mailer service and pass it a user:
 
-    class MailerService
-      attr_accessor :configuration, :to, :subject, :message
+  MailerService.new(user, 'bob@example.com', 'test message', 'hello world!').deliver
 
-      def initialize(configuration, to, subject, message)
-      	self.configuration = configuration
-      	self.to = to
-      	self.subject = subject
-      	self.message = message
-      end
+Looking at the line of code above, one might wonder why a user is being passed into the mailer service.  One might also wonder what properties of 'user' the mailer service is actually using.  Is the mailer only reading properties of my user or is it *changing* the user?  What if another developer comes along, noticing that the mailer is receiving a User model, and inadvertantly tightly couples MailerService to the User model?  That may not cause immediate problems, but down the road services and models can become more and more tightly coupled.  When you find yourself needing to use your service somewhere else you might find the de-coupling refactor to be a daunting task...
 
-      def deliver
-        # ... implement mail sending here
-      end
-    end
-
-This also works fine.  We can call the Mailer service and pass it a user:
-
-	MailerService.new(user, 'bob@example.com', 'test message', 'hello world!').deliver
-
-The problem isn't that it doesn't work, it does.  The problem is that the readability is low.  Looking at the line of code above, one might wonder why a user is being passed into the mailer service.  One might also wonder what properties of 'user' the mailer service is actually using.  Is the mailer only reading properties of my user or is it *changing* the user?  What if another developer comes along, noticing that the mailer is receiving a User model, and inadvertantly tightly couples MailerService to the User model?  That may not cause immediate problems, but down the road services and models can become more and more tightly coupled.  When you find yourself needing to use your service somewhere else you might find the de-coupling refactor to be a daunting task...
-
-So let's re-write this code using Interfaces.  First, let's define an interface:
+The Mailer service does not really need a User, what it needs is configuration.  So let's re-write this code using Interfaces.  First, let's define an interface:
 
 	class MailerConfiguration < Interface
 		abstract :email_server, :use_ssl?, :port, :use_html?, :email_sent_callback
 	end
 
-Then, when we call our mailer service we cast the 'user' object to be a MailerConfiguration object:
+Then, when we call our mailer service it will cast whatever object is passed in to be a MailerConfiguration object:
 
-	MailerService.new(user.as(MailerConfiguration), 'bob@example.com', 'test message', 'hello world!').deliver
+  class MailerService
+    attr_accessor :config, :to, :subject, :message
 
+    def initialize(config, to, subject, message)
+      self.config = config.as(MailerConfiguration)
+      ...
 
 Now it's clear that the user is being passed in because it contains configuration information.  Further, there is enforcement taking place-- if User did not implement one of the four required methods, a clear exception would be fired at runtime.  And if MailerService tries to call another method of User that is not defined in the MailerConfiguration interface, an exception will be thrown.  Lastly, there's one place to look to determine what methods are needed by MailerConfiguration-- the code is self documenting.
 
