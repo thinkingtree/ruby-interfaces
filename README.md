@@ -64,12 +64,12 @@ The Mailer service does not really need a User, what it needs is configuration. 
 
 Then, when we call our mailer service it will cast whatever object is passed in to be a MailerConfiguration object:
 
-  class MailerService
-    attr_accessor :config, :to, :subject, :message
+    class MailerService
+      attr_accessor :config, :to, :subject, :message
 
-    def initialize(config, to, subject, message)
-      self.config = config.as(MailerConfiguration)
-      ...
+      def initialize(config, to, subject, message)
+        self.config = config.as(MailerConfiguration)
+        ...
 
 Now it's clear that the user is being passed in because it contains configuration information.  Further, there is enforcement taking place-- if User did not implement one of the four required methods, a clear exception would be fired at runtime.  And if MailerService tries to call another method of User that is not defined in the MailerConfiguration interface, an exception will be thrown.  Lastly, there's one place to look to determine what methods are needed by MailerConfiguration-- the code is self documenting.
 
